@@ -23,9 +23,9 @@ func NewUserRepositoryPG(db *postgres.DB) *UserRepositoryPG {
 func (r *UserRepositoryPG) Create(ctx context.Context, u *user.User) error {
 	row := UserToRow(u)
 	_, err := r.db.Pool.Exec(ctx, `
-		INSERT INTO users (id, login, pass_hash, created_at)
+		INSERT INTO users (id, login, password_hash, created_at)
 		VALUES ($1,$2,$3,$4)
-	`, row.ID, row.Login, row.PassHash, row.CreatedAt)
+	`, row.ID, row.Login, row.PasswordHash, row.CreatedAt)
 	if err != nil {
 		if isUniqueViolation(err) {
 			return user.ErrLoginTaken
@@ -37,13 +37,13 @@ func (r *UserRepositoryPG) Create(ctx context.Context, u *user.User) error {
 
 func (r *UserRepositoryPG) FindByLogin(ctx context.Context, login user.Login) (*user.User, error) {
 	row := r.db.Pool.QueryRow(ctx, `
-		SELECT id, login, pass_hash, created_at
+		SELECT id, login, password_hash, created_at
 		FROM users
 		WHERE login=$1
 	`, login.String())
 
 	var ur UserRow
-	if err := row.Scan(&ur.ID, &ur.Login, &ur.PassHash, &ur.CreatedAt); err != nil {
+	if err := row.Scan(&ur.ID, &ur.Login, &ur.PasswordHash, &ur.CreatedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
@@ -54,13 +54,13 @@ func (r *UserRepositoryPG) FindByLogin(ctx context.Context, login user.Login) (*
 
 func (r *UserRepositoryPG) FindByID(ctx context.Context, id string) (*user.User, error) {
 	row := r.db.Pool.QueryRow(ctx, `
-		SELECT id, login, pass_hash, created_at
+		SELECT id, login, password_hash, created_at
 		FROM users
 		WHERE id=$1
 	`, id)
 
 	var ur UserRow
-	if err := row.Scan(&ur.ID, &ur.Login, &ur.PassHash, &ur.CreatedAt); err != nil {
+	if err := row.Scan(&ur.ID, &ur.Login, &ur.PasswordHash, &ur.CreatedAt); err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}

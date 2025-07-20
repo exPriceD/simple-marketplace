@@ -10,7 +10,7 @@ func RowToUser(r UserRow) (*user.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	passHashVO, err := user.NewPasswordHash(r.PassHash)
+	passHashVO, err := user.NewPasswordHash(r.PasswordHash)
 	if err != nil {
 		return nil, err
 	}
@@ -21,9 +21,9 @@ func RowToUser(r UserRow) (*user.User, error) {
 // UserToRow преобразует доменную сущность -> UserRow.
 func UserToRow(u *user.User) UserRow {
 	return UserRow{
-		ID:        u.ID(),
-		Login:     u.Login().String(),
-		PassHash:  u.PasswordHash(),
-		CreatedAt: u.CreatedAt(),
+		ID:           u.ID(),
+		Login:        u.Login().String(),
+		PasswordHash: u.PasswordHash(),
+		CreatedAt:    u.CreatedAt(),
 	}
 }
