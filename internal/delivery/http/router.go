@@ -2,13 +2,22 @@ package httpdelivery
 
 import (
 	"github.com/exPriceD/simple-marketplace/internal/application/port"
+	"github.com/exPriceD/simple-marketplace/internal/platform/log"
+	"github.com/exPriceD/simple-marketplace/internal/platform/metrics"
 	"net/http"
 
 	"github.com/exPriceD/simple-marketplace/internal/delivery/http/handler"
 	"github.com/exPriceD/simple-marketplace/internal/delivery/http/middleware"
 )
 
-func NewRouter(authH *handler.AuthHandler, listingH *handler.ListingHandler, tp tokenParser) http.Handler {
+func NewRouter(
+	authH *handler.AuthHandler,
+	listingH *handler.ListingHandler,
+	tp tokenParser,
+	logger log.Logger,
+	metr metrics.Metrics,
+	metricsHandler http.Handler,
+) http.Handler {
 	mux := http.NewServeMux()
 
 	// Health
@@ -17,6 +26,9 @@ func NewRouter(authH *handler.AuthHandler, listingH *handler.ListingHandler, tp 
 		w.WriteHeader(http.StatusOK)
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
+
+	// Metrics
+	mux.Handle("/metrics", metricsHandler)
 
 	// Auth
 	mux.HandleFunc("/auth/register", method("POST", authH.Register))
@@ -36,9 +48,10 @@ func NewRouter(authH *handler.AuthHandler, listingH *handler.ListingHandler, tp 
 
 	var h http.Handler = mux
 	h = middleware.AuthContext(tp)(h)
+	h = middleware.Metrics(metr)(h)
 	h = middleware.RequestID(h)
 	h = middleware.Recovery(h)
-	h = middleware.Logging(h)
+	h = middleware.Logging(logger)(h)
 
 	return h
 }

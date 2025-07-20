@@ -11,12 +11,12 @@ import (
 )
 
 type AuthHandler struct {
-	registerUC *usecase.RegisterUser
-	loginUC    *usecase.LoginUser
+	register usecase.RegisterUserUseCase
+	login    usecase.LoginUserUseCase
 }
 
-func NewAuthHandler(reg *usecase.RegisterUser, login *usecase.LoginUser) *AuthHandler {
-	return &AuthHandler{registerUC: reg, loginUC: login}
+func NewAuthHandler(reg usecase.RegisterUserUseCase, login usecase.LoginUserUseCase) *AuthHandler {
+	return &AuthHandler{register: reg, login: login}
 }
 
 var badJSONError = apperror.New("http.decode", "bad_json", apperror.KindValidation, nil)
@@ -27,7 +27,7 @@ func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 		response.WriteAppError(w, middleware.RequestIDValue(r.Context()), badJSONError)
 		return
 	}
-	out, err := h.registerUC.Execute(r.Context(), usecase.RegisterUserInput{
+	out, err := h.register.Execute(r.Context(), usecase.RegisterUserInput{
 		Login: req.Login, Password: req.Password,
 	})
 	if err != nil {
@@ -43,7 +43,7 @@ func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 		response.WriteAppError(w, middleware.RequestIDValue(r.Context()), badJSONError)
 		return
 	}
-	out, err := h.loginUC.Execute(r.Context(), usecase.LoginUserInput{
+	out, err := h.login.Execute(r.Context(), usecase.LoginUserInput{
 		Login: req.Login, Password: req.Password,
 	})
 	if err != nil {

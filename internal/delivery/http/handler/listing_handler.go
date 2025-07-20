@@ -12,12 +12,12 @@ import (
 )
 
 type ListingHandler struct {
-	createUC *usecase.CreateListing
-	listUC   *usecase.ListListings
+	create usecase.CreateListingUseCase
+	list   usecase.ListListingsUseCase
 }
 
-func NewListingHandler(create *usecase.CreateListing, list *usecase.ListListings) *ListingHandler {
-	return &ListingHandler{createUC: create, listUC: list}
+func NewListingHandler(create usecase.CreateListingUseCase, list usecase.ListListingsUseCase) *ListingHandler {
+	return &ListingHandler{create: create, list: list}
 }
 
 var badJSONListErr = apperror.New("http.decode", "bad_json", apperror.KindValidation, nil)
@@ -36,7 +36,7 @@ func (h *ListingHandler) Create(w http.ResponseWriter, r *http.Request) {
 			apperror.New("listing.create", "unauthorized", apperror.KindAuth, nil))
 		return
 	}
-	out, err := h.createUC.Execute(r.Context(), usecase.CreateListingInput{
+	out, err := h.create.Execute(r.Context(), usecase.CreateListingInput{
 		AuthorID:    userID,
 		Title:       req.Title,
 		Description: req.Description,
@@ -56,7 +56,7 @@ func (h *ListingHandler) Create(w http.ResponseWriter, r *http.Request) {
 func (h *ListingHandler) List(w http.ResponseWriter, r *http.Request) {
 	q := mapping.ParseListQuery(r)
 	currentUserID, _ := middleware.UserID(r.Context())
-	out, err := h.listUC.Execute(r.Context(), usecase.ListListingsInput{
+	out, err := h.list.Execute(r.Context(), usecase.ListListingsInput{
 		Limit:         q.Limit,
 		Offset:        q.Offset,
 		SortBy:        q.SortBy,
