@@ -5,6 +5,8 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"golang.org/x/crypto/argon2"
 )
@@ -12,7 +14,7 @@ import (
 // Argon2idHasher реализует порт PasswordHasher.
 type Argon2idHasher struct {
 	Time    uint32
-	Memory  uint32 // в KB (обычно MB * 1024)
+	Memory  uint32
 	Threads uint8
 	KeyLen  uint32
 }
@@ -40,15 +42,33 @@ func (h *Argon2idHasher) Hash(plain string) (string, error) {
 }
 
 func (h *Argon2idHasher) Verify(hash, plain string) bool {
-	var (
-		t, m            uint32
-		p               uint8
-		saltB64, keyB64 string
-	)
-	_, err := fmt.Sscanf(hash, "argon2id$v=19$t=%d$m=%d$p=%d$%s$%s", &t, &m, &p, &saltB64, &keyB64)
+	parts := strings.Split(hash, "$")
+	if len(parts) != 7 {
+		return false
+	}
+	if parts[0] != "argon2id" || parts[1] != "v=19" {
+		return false
+	}
+	if !strings.HasPrefix(parts[2], "t=") ||
+		!strings.HasPrefix(parts[3], "m=") ||
+		!strings.HasPrefix(parts[4], "p=") {
+		return false
+	}
+	tVal, err := strconv.ParseUint(strings.TrimPrefix(parts[2], "t="), 10, 32)
 	if err != nil {
 		return false
 	}
+	mVal, err := strconv.ParseUint(strings.TrimPrefix(parts[3], "m="), 10, 32)
+	if err != nil {
+		return false
+	}
+	pVal, err := strconv.ParseUint(strings.TrimPrefix(parts[4], "p="), 10, 8)
+	if err != nil {
+		return false
+	}
+	saltB64 := parts[5]
+	keyB64 := parts[6]
+
 	salt, err := base64.RawStdEncoding.DecodeString(saltB64)
 	if err != nil {
 		return false
@@ -57,6 +77,7 @@ func (h *Argon2idHasher) Verify(hash, plain string) bool {
 	if err != nil {
 		return false
 	}
-	key := argon2.IDKey([]byte(plain), salt, t, m, p, uint32(len(keyStored)))
+
+	key := argon2.IDKey([]byte(plain), salt, uint32(tVal), uint32(mVal), uint8(pVal), uint32(len(keyStored)))
 	return subtle.ConstantTimeCompare(keyStored, key) == 1
 }
