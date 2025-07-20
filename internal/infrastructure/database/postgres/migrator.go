@@ -2,66 +2,96 @@ package postgres
 
 import (
 	"context"
-	"embed"
+	"errors"
 	"fmt"
+	"github.com/exPriceD/simple-marketplace/migrations"
+	"github.com/jackc/pgx/v5"
 	"io/fs"
 	"sort"
 	"strings"
 )
 
-//go:embed ../../../migrations/*.sql
-var migrationFiles embed.FS
+type migration struct {
+	Name string
+	SQL  string
+}
 
-// Примечание: Путь в //go:embed relatif к каталогу файла. Данный файл находится в internal/infrastructure/database/postgres,
-// поэтому к корневой migrations папке путь ../../../migrations/*.sql. (Go модуль корень — там же go.mod).
-
-// RunMigrations применяет SQL файлы из корневой папки migrations.
+// RunMigrations читает встроенные SQL файлы из migrations.Files и применяет их по имени.
 func RunMigrations(ctx context.Context, db *DB) error {
-	if db == nil || db.Pool == nil {
-		return fmt.Errorf("nil db")
-	}
-
-	if _, err := db.Pool.Exec(ctx, `
-		CREATE TABLE IF NOT EXISTS schema_migrations(
-			name text PRIMARY KEY,
-			applied_at timestamptz NOT NULL DEFAULT now()
-		)`); err != nil {
-		return fmt.Errorf("create schema_migrations: %w", err)
-	}
-
-	entries, err := fs.ReadDir(migrationFiles, "../../../migrations")
+	files, err := fs.ReadDir(migrations.Files, ".")
 	if err != nil {
-		return fmt.Errorf("read migrations: %w", err)
+		return fmt.Errorf("read migrations fs: %w", err)
 	}
-	var files []string
-	for _, e := range entries {
-		if e.IsDir() || !strings.HasSuffix(e.Name(), ".sql") {
-			continue
-		}
-		files = append(files, e.Name())
-	}
-	sort.Strings(files)
 
-	for _, fname := range files {
-		var exists bool
-		if err := db.Pool.QueryRow(ctx,
-			`SELECT EXISTS(SELECT 1 FROM schema_migrations WHERE name=$1)`, fname,
-		).Scan(&exists); err != nil {
-			return fmt.Errorf("check migration %s: %w", fname, err)
-		}
-		if exists {
+	var migs []migration
+	for _, f := range files {
+		if f.IsDir() {
 			continue
 		}
-		content, err := migrationFiles.ReadFile("../../../migrations/" + fname)
+		name := f.Name()
+		if !strings.HasSuffix(name, ".sql") {
+			continue
+		}
+		content, err := fs.ReadFile(migrations.Files, name)
 		if err != nil {
-			return fmt.Errorf("read file %s: %w", fname, err)
+			return fmt.Errorf("read migration %s: %w", name, err)
 		}
-		if _, err := db.Pool.Exec(ctx, string(content)); err != nil {
-			return fmt.Errorf("apply %s: %w", fname, err)
+		migs = append(migs, migration{
+			Name: name,
+			SQL:  string(content),
+		})
+	}
+
+	sort.Slice(migs, func(i, j int) bool {
+		return migs[i].Name < migs[j].Name
+	})
+
+	for _, m := range migs {
+		if err := applyMigration(ctx, db, m); err != nil {
+			return fmt.Errorf("apply %s: %w", m.Name, err)
 		}
-		if _, err := db.Pool.Exec(ctx, `INSERT INTO schema_migrations(name) VALUES($1)`, fname); err != nil {
-			return fmt.Errorf("record %s: %w", fname, err)
-		}
+	}
+	return nil
+}
+
+func applyMigration(ctx context.Context, db *DB, m migration) error {
+	const ddl = `
+CREATE TABLE IF NOT EXISTS schema_migrations (
+    id SERIAL PRIMARY KEY,
+    name TEXT NOT NULL UNIQUE,
+    applied_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);`
+	if _, err := db.Pool.Exec(ctx, ddl); err != nil {
+		return fmt.Errorf("ensure schema_migrations: %w", err)
+	}
+
+	var exists bool
+	err := db.Pool.QueryRow(ctx,
+		`SELECT true FROM schema_migrations WHERE name=$1 LIMIT 1`, m.Name).Scan(&exists)
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return fmt.Errorf("check migration %s: %w", m.Name, err)
+	}
+	if exists {
+		return nil
+	}
+
+	tx, err := db.Pool.BeginTx(ctx, pgx.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("begin: %w", err)
+	}
+	defer func() {
+		_ = tx.Rollback(ctx)
+	}()
+
+	if _, err := tx.Exec(ctx, m.SQL); err != nil {
+		return fmt.Errorf("exec migration %s: %w", m.Name, err)
+	}
+	if _, err := tx.Exec(ctx,
+		`INSERT INTO schema_migrations (name) VALUES ($1)`, m.Name); err != nil {
+		return fmt.Errorf("record migration %s: %w", m.Name, err)
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return fmt.Errorf("commit migration %s: %w", m.Name, err)
 	}
 	return nil
 }
