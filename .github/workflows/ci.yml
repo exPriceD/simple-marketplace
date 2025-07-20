@@ -1,10 +1,7 @@
 name: CI
 
 on:
-  push:
-    branches: [ "main", "master" ]
-  pull_request:
-    branches: [ "main", "master" ]
+  push: { branches: [ "main", "master" ] }
 
 permissions:
   contents: read
@@ -30,20 +27,18 @@ jobs:
             ~/.cache/go-build
             ${{ env.GOMODCACHE }}
           key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-go-
+          restore-keys: ${{ runner.os }}-go-
 
-      - name: Install golangci-lint v1.56.2
+      - name: Install golangci-lint v2.2.2
         run: |
-          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
-            | sh -s -- -b $(go env GOPATH)/bin v1.56.2
+          go install github.com/golangci/golangci-lint/cmd/golangci-lint@v2.2.2
+          echo "$HOME/go/bin" >> $GITHUB_PATH   # чтобы бинарь был в $PATH
 
       - name: Lint
         run: golangci-lint run ./...
 
       - name: Run unit tests
-        run: |
-          go test -race -coverprofile=cover.out -covermode=atomic ./...
+        run: go test -race -coverprofile=cover.out -covermode=atomic ./...
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
