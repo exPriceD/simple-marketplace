@@ -2,14 +2,12 @@ package listingrepo
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/exPriceD/simple-marketplace/internal/application/port"
 	"github.com/exPriceD/simple-marketplace/internal/domain/listing"
 	"github.com/exPriceD/simple-marketplace/internal/infrastructure/database/postgres"
-	"github.com/jackc/pgx/v5"
 )
 
 // ListingRepositoryPG — реализация порта ListingRepository для Postgres.
@@ -59,7 +57,6 @@ func (r *ListingRepositoryPG) List(ctx context.Context, f port.ListingFilter) ([
 	if f.PriceMax != nil {
 		clauses = append(clauses, fmt.Sprintf("price <= $%d", argIndex))
 		args = append(args, *f.PriceMax)
-		argIndex++
 	}
 
 	if f.SortBy == "price" {
@@ -120,12 +117,10 @@ func (r *ListingRepositoryPG) Count(ctx context.Context, f port.ListingFilter) (
 	if f.PriceMin != nil {
 		clauses = append(clauses, fmt.Sprintf("price >= $%d", argIndex))
 		args = append(args, *f.PriceMin)
-		argIndex++
 	}
 	if f.PriceMax != nil {
 		clauses = append(clauses, fmt.Sprintf("price <= $%d", argIndex))
 		args = append(args, *f.PriceMax)
-		argIndex++
 	}
 
 	query := `SELECT COUNT(*) FROM listings`
@@ -141,7 +136,3 @@ func (r *ListingRepositoryPG) Count(ctx context.Context, f port.ListingFilter) (
 }
 
 var _ port.ListingRepository = (*ListingRepositoryPG)(nil)
-
-func isNoRows(err error) bool {
-	return errors.Is(err, pgx.ErrNoRows)
-}

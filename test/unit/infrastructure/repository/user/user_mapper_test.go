@@ -21,7 +21,7 @@ func TestUserMapper_RoundTrip(t *testing.T) {
 	orig := userdomain.RehydrateUser("abc123id", loginVO, passHashVO, created)
 
 	row := userrepo.UserToRow(orig)
-	if row.ID != "abc123id" || row.Login != "Alice_01" || row.PassHash != passHashVO.String() || !row.CreatedAt.Equal(created) {
+	if row.ID != "abc123id" || row.Login != "Alice_01" || row.PasswordHash != passHashVO.String() || !row.CreatedAt.Equal(created) {
 		t.Fatalf("row mismatch %+v", row)
 	}
 
@@ -40,10 +40,10 @@ func TestUserMapper_RoundTrip(t *testing.T) {
 
 func TestUserMapper_InvalidLogin(t *testing.T) {
 	row := userrepo.UserRow{
-		ID:        "id1",
-		Login:     "bad login with space",
-		PassHash:  "argon2id$v=19$t=1$m=65536$p=2$aaaaaaaaaaaaaaaaaaaaaa$bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
-		CreatedAt: time.Now().UTC(),
+		ID:           "id1",
+		Login:        "bad login with space",
+		PasswordHash: "argon2id$v=19$t=1$m=65536$p=2$aaaaaaaaaaaaaaaaaaaaaa$bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+		CreatedAt:    time.Now().UTC(),
 	}
 	_, err := userrepo.RowToUser(row)
 	if err == nil {
@@ -53,10 +53,10 @@ func TestUserMapper_InvalidLogin(t *testing.T) {
 
 func TestUserMapper_InvalidPassHash(t *testing.T) {
 	row := userrepo.UserRow{
-		ID:        "id1",
-		Login:     "Valid_123",
-		PassHash:  "md5$insecure$hash",
-		CreatedAt: time.Now().UTC(),
+		ID:           "id1",
+		Login:        "Valid_123",
+		PasswordHash: "md5$insecure$hash",
+		CreatedAt:    time.Now().UTC(),
 	}
 	_, err := userrepo.RowToUser(row)
 	if err == nil {

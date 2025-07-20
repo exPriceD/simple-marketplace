@@ -17,8 +17,7 @@ type fakeListingRepo struct {
 }
 
 func (r *fakeListingRepo) Create(ctx context.Context, l *listingdomain.Listing) (*listingdomain.Listing, error) {
-	cp := *l
-	cp = *l.WithID(int64(len(r.created)+1), l.CreatedAt())
+	cp := *l.WithID(int64(len(r.created)+1), l.CreatedAt())
 	r.created = append(r.created, &cp)
 	return &cp, nil
 }
