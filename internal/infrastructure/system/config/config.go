@@ -16,6 +16,7 @@ type Config struct {
 	ArgonMemoryMB uint32
 	ArgonThreads  uint8
 	ArgonKeyLen   uint32
+	LogLevel      string
 }
 
 func Load() (Config, error) {
@@ -39,6 +40,8 @@ func Load() (Config, error) {
 	cfg.ArgonMemoryMB = uint32(mustUint("ARGON_MEMORY_MB", 64))
 	cfg.ArgonThreads = uint8(mustUint("ARGON_THREADS", 2))
 	cfg.ArgonKeyLen = uint32(mustUint("ARGON_KEY_LEN", 32))
+
+	cfg.LogLevel = getEnv("LOG_LEVEL", "info")
 
 	if cfg.DSN == "" {
 		return cfg, errors.New("PG_URL required")
