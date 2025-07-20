@@ -19,6 +19,17 @@ func main() {
 	}
 
 	ctx := context.Background()
+
+	if os.Getenv("MIGRATE_ONLY") == "1" {
+		app, err := bootstrap.Build(ctx, cfg)
+		if err != nil {
+			log.Fatalf("migrate-only build: %v", err)
+		}
+		app.DB.Close()
+		log.Println("migrations applied (MIGRATE_ONLY=1), exiting")
+		return
+	}
+
 	app, err := bootstrap.Build(ctx, cfg)
 	if err != nil {
 		log.Fatalf("build: %v", err)
