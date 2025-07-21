@@ -45,7 +45,7 @@ func TestListListings_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
 	}
-	if len(out.Items) != 1 || out.Total != 1 || out.Items[0].AuthorLogin != "user1" {
+	if len(out.Items) != 1 || out.Total != 1 || out.Items[0].AuthorLogin != "user123" {
 		t.Fatalf("unexpected result: %+v", out)
 	}
 }
