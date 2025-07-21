@@ -7,7 +7,7 @@ RUN go mod download
 COPY . .
 COPY frontend ./frontend
 ENV CGO_ENABLED=0 GOOS=linux GOARCH=amd64
-RUN go build -trimpath -ldflags "-s -w" -o /app/bin/simple-marketplace ./cmd/api
+RUN go build -buildvcs=false -trimpath -ldflags "-s -w" -o /app/bin/simple-marketplace ./cmd/api
 
 # STAGE 2: runtime
 FROM alpine:3.22.1
