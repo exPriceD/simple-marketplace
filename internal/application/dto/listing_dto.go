@@ -7,7 +7,7 @@ type ListingDTO struct {
 	ImageURL    string `json:"image_url"`
 	Price       int64  `json:"price"`
 	AuthorID    string `json:"author_id"`
-	AuthorLogin string `json:"author_login,omitempty"`
+	AuthorLogin string `json:"author_login"`
 	CreatedAt   string `json:"created_at"`
 	IsOwner     bool   `json:"is_owner,omitempty"`
 }

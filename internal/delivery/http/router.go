@@ -1,10 +1,12 @@
 package httpdelivery
 
 import (
+	"net/http"
+	"os"
+
 	"github.com/exPriceD/simple-marketplace/internal/application/port"
 	"github.com/exPriceD/simple-marketplace/internal/platform/log"
 	"github.com/exPriceD/simple-marketplace/internal/platform/metrics"
-	"net/http"
 
 	"github.com/exPriceD/simple-marketplace/internal/delivery/http/handler"
 	"github.com/exPriceD/simple-marketplace/internal/delivery/http/middleware"
@@ -44,6 +46,24 @@ func NewRouter(
 		default:
 			w.WriteHeader(http.StatusMethodNotAllowed)
 		}
+	})
+
+	// Static
+	fs := http.FileServer(http.Dir("frontend"))
+	mux.Handle("/static/", http.StripPrefix("/static/", fs))
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/" || r.URL.Path == "/index.html" {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			http.ServeFile(w, r, "frontend/index.html")
+			return
+		}
+
+		if _, err := os.Stat("frontend" + r.URL.Path); os.IsNotExist(err) {
+			w.Header().Set("Content-Type", "text/html; charset=utf-8")
+			http.ServeFile(w, r, "frontend/index.html")
+			return
+		}
+		fs.ServeHTTP(w, r)
 	})
 
 	var h http.Handler = mux

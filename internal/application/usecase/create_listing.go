@@ -12,6 +12,7 @@ import (
 
 type CreateListingInput struct {
 	AuthorID    string
+	AuthorLogin string
 	Title       string
 	Description string
 	ImageURL    string
@@ -49,7 +50,7 @@ func (uc *CreateListing) Execute(ctx context.Context, in CreateListingInput) (dt
 		return dto.ListingDTO{}, apperror.New(op, "invalid_price", apperror.KindValidation, err)
 	}
 
-	l := listing.NewListing(titleVO, descVO, imgVO, priceVO, in.AuthorID, uc.clock.Now())
+	l := listing.NewListing(titleVO, descVO, imgVO, priceVO, in.AuthorID, in.AuthorLogin, uc.clock.Now())
 	created, err := uc.listings.Create(ctx, l)
 	if err != nil {
 		return dto.ListingDTO{}, apperror.New(op, "persist_error", apperror.KindInternal, err)

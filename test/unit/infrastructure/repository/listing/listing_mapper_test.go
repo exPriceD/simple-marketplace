@@ -27,12 +27,12 @@ func TestListingMapper_RoundTrip(t *testing.T) {
 	}
 	created := time.Unix(1730001000, 0).UTC()
 
-	orig := listingdomain.RehydrateListing(42, titleVO, descVO, imgVO, priceVO, "user123", created)
+	orig := listingdomain.RehydrateListing(42, titleVO, descVO, imgVO, priceVO, "user123", "user123", created)
 
 	row := listingrepo.ListingToRow(orig)
 	if row.ID != 42 || row.Title != titleVO.String() || row.Description != descVO.String() ||
 		row.ImageURL != imgVO.String() || row.Price != priceVO.Int64() ||
-		row.AuthorID != "user123" || !row.CreatedAt.Equal(created) {
+		row.AuthorID != "user123" || row.AuthorLogin != "user123" || !row.CreatedAt.Equal(created) {
 		t.Fatalf("row mismatch: %+v", row)
 	}
 
@@ -47,6 +47,7 @@ func TestListingMapper_RoundTrip(t *testing.T) {
 		back.ImageURL() != orig.ImageURL() ||
 		back.Price() != orig.Price() ||
 		back.AuthorID() != orig.AuthorID() ||
+		back.AuthorLogin() != orig.AuthorLogin() ||
 		!back.CreatedAt().Equal(orig.CreatedAt()) {
 		t.Fatalf("round trip mismatch: got=%+v want=%+v", back, orig)
 	}
@@ -60,6 +61,7 @@ func TestListingMapper_InvalidTitle(t *testing.T) {
 		ImageURL:    "https://example.com/img.jpg",
 		Price:       100,
 		AuthorID:    "u1",
+		AuthorLogin: "user1",
 		CreatedAt:   time.Now().UTC(),
 	}
 	_, err := listingrepo.RowToListing(row)
@@ -76,6 +78,7 @@ func TestListingMapper_InvalidPrice(t *testing.T) {
 		ImageURL:    "https://example.com/img.jpg",
 		Price:       -5,
 		AuthorID:    "u1",
+		AuthorLogin: "user1",
 		CreatedAt:   time.Now().UTC(),
 	}
 	_, err := listingrepo.RowToListing(row)
@@ -92,6 +95,7 @@ func TestListingMapper_InvalidImageURL(t *testing.T) {
 		ImageURL:    "ftp://bad",
 		Price:       100,
 		AuthorID:    "u1",
+		AuthorLogin: "user1",
 		CreatedAt:   time.Now().UTC(),
 	}
 	_, err := listingrepo.RowToListing(row)

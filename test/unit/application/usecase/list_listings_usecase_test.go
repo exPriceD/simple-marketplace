@@ -32,8 +32,10 @@ func TestListListings_Success(t *testing.T) {
 	descVO, _ := listingdomain.NewDescription("Desc")
 	imgVO, _ := listingdomain.NewImageURL("https://example.com/i.png")
 	priceVO, _ := listingdomain.NewPrice(500)
+	created := time.Now().UTC()
+	orig := listingdomain.RehydrateListing(42, titleVO, descVO, imgVO, priceVO, "user123", "user123", created)
 	repo.items = []*listingdomain.Listing{
-		listingdomain.RehydrateListing(1, titleVO, descVO, imgVO, priceVO, "u1", time.Now().UTC()),
+		orig,
 	}
 
 	uc := usecase.NewListListings(repo)
@@ -43,7 +45,7 @@ func TestListListings_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("unexpected err: %v", err)
 	}
-	if len(out.Items) != 1 || out.Total != 1 {
+	if len(out.Items) != 1 || out.Total != 1 || out.Items[0].AuthorLogin != "user1" {
 		t.Fatalf("unexpected result: %+v", out)
 	}
 }

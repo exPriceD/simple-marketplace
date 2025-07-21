@@ -22,7 +22,7 @@ func RowToListing(r ListingRow) (*listing.Listing, error) {
 	if err != nil {
 		return nil, err
 	}
-	l := listing.RehydrateListing(r.ID, titleVO, descVO, imgVO, priceVO, r.AuthorID, r.CreatedAt)
+	l := listing.RehydrateListing(r.ID, titleVO, descVO, imgVO, priceVO, r.AuthorID, r.AuthorLogin, r.CreatedAt)
 	return l, nil
 }
 
@@ -35,6 +35,7 @@ func ListingToRow(l *listing.Listing) ListingRow {
 		ImageURL:    l.ImageURL(),
 		Price:       l.Price(),
 		AuthorID:    l.AuthorID(),
+		AuthorLogin: l.AuthorLogin(),
 		CreatedAt:   l.CreatedAt(),
 	}
 }

@@ -15,6 +15,7 @@ func ListingToDTO(l *listing.Listing) dto.ListingDTO {
 		ImageURL:    l.ImageURL(),
 		Price:       l.Price(),
 		AuthorID:    l.AuthorID(),
+		AuthorLogin: l.AuthorLogin(),
 		CreatedAt:   l.CreatedAt().UTC().Format(time.RFC3339),
 	}
 }

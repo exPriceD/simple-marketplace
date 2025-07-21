@@ -36,8 +36,10 @@ func (h *ListingHandler) Create(w http.ResponseWriter, r *http.Request) {
 			apperror.New("listing.create", "unauthorized", apperror.KindAuth, nil))
 		return
 	}
+	userLogin, _ := middleware.UserLogin(r.Context())
 	out, err := h.create.Execute(r.Context(), usecase.CreateListingInput{
 		AuthorID:    userID,
+		AuthorLogin: userLogin,
 		Title:       req.Title,
 		Description: req.Description,
 		ImageURL:    req.ImageURL,

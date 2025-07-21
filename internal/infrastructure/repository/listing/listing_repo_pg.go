@@ -25,10 +25,10 @@ func (r *ListingRepositoryPG) Create(ctx context.Context, l *listing.Listing) (*
 	var id int64
 	var createdAtPg = row.CreatedAt
 	err := r.db.Pool.QueryRow(ctx, `
-		INSERT INTO listings (title,description,image_url,price,author_id,created_at)
-		VALUES ($1,$2,$3,$4,$5,$6)
+		INSERT INTO listings (title,description,image_url,price,author_id,author_login,created_at)
+		VALUES ($1,$2,$3,$4,$5,$6,$7)
 		RETURNING id, created_at
-	`, row.Title, row.Description, row.ImageURL, row.Price, row.AuthorID, row.CreatedAt).Scan(&id, &createdAtPg)
+	`, row.Title, row.Description, row.ImageURL, row.Price, row.AuthorID, row.AuthorLogin, row.CreatedAt).Scan(&id, &createdAtPg)
 	if err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func (r *ListingRepositoryPG) Create(ctx context.Context, l *listing.Listing) (*
 	imgVO, _ := listing.NewImageURL(row.ImageURL)
 	priceVO, _ := listing.NewPrice(row.Price)
 
-	return listing.RehydrateListing(id, titleVO, descVO, imgVO, priceVO, row.AuthorID, createdAtPg), nil
+	return listing.RehydrateListing(id, titleVO, descVO, imgVO, priceVO, row.AuthorID, row.AuthorLogin, createdAtPg), nil
 }
 
 func (r *ListingRepositoryPG) List(ctx context.Context, f port.ListingFilter) ([]*listing.Listing, error) {
@@ -69,7 +69,7 @@ func (r *ListingRepositoryPG) List(ctx context.Context, f port.ListingFilter) ([
 	}
 
 	query := `
-		SELECT id, title, description, image_url, price, author_id, created_at
+		SELECT id, title, description, image_url, price, author_id, author_login, created_at
 		FROM listings
 	`
 	if len(clauses) > 0 {
@@ -97,7 +97,9 @@ func (r *ListingRepositoryPG) List(ctx context.Context, f port.ListingFilter) ([
 	var results []*listing.Listing
 	for rows.Next() {
 		var lr ListingRow
-		if err := rows.Scan(&lr.ID, &lr.Title, &lr.Description, &lr.ImageURL, &lr.Price, &lr.AuthorID, &lr.CreatedAt); err != nil {
+		if err := rows.Scan(
+			&lr.ID, &lr.Title, &lr.Description, &lr.ImageURL, &lr.Price, &lr.AuthorID, &lr.AuthorLogin, &lr.CreatedAt,
+		); err != nil {
 			return nil, err
 		}
 		l, err := RowToListing(lr)

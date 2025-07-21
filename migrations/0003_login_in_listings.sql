@@ -1,0 +1,1 @@
+ALTER TABLE listings ADD COLUMN author_login VARCHAR(32) NOT NULL DEFAULT '';

@@ -3,9 +3,10 @@ package usecase_test
 import (
 	"context"
 	"errors"
-	"github.com/exPriceD/simple-marketplace/internal/application/port"
 	"testing"
 	"time"
+
+	"github.com/exPriceD/simple-marketplace/internal/application/port"
 
 	apperror "github.com/exPriceD/simple-marketplace/internal/application/error"
 	"github.com/exPriceD/simple-marketplace/internal/application/usecase"
@@ -36,13 +37,13 @@ func TestCreateListing_Success(t *testing.T) {
 	repo := &fakeListingRepo{}
 	uc := usecase.NewCreateListing(repo, fakeClock{time.Unix(2000, 0).UTC()})
 	out, err := uc.Execute(context.Background(), usecase.CreateListingInput{
-		AuthorID: "uid1", Title: "Телефон", Description: "Сост 9/10",
+		AuthorID: "uid1", AuthorLogin: "user1", Title: "Телефон", Description: "Сост 9/10",
 		ImageURL: "https://example.com/p.jpg", Price: 1000,
 	})
 	if err != nil {
 		t.Fatalf("unexpected: %v", err)
 	}
-	if out.Title != "Телефон" || out.ID == 0 {
+	if out.Title != "Телефон" || out.ID == 0 || out.AuthorLogin != "user1" {
 		t.Fatalf("unexpected dto: %+v", out)
 	}
 }
@@ -51,7 +52,7 @@ func TestCreateListing_Validation(t *testing.T) {
 	repo := &fakeListingRepo{}
 	uc := usecase.NewCreateListing(repo, fakeClock{time.Now().UTC()})
 	_, err := uc.Execute(context.Background(), usecase.CreateListingInput{
-		AuthorID: "uid1", Title: "", Description: "desc",
+		AuthorID: "uid1", AuthorLogin: "user1", Title: "", Description: "desc",
 		ImageURL: "https://example.com/a.jpg", Price: 10,
 	})
 	if err == nil {
