@@ -57,6 +57,7 @@ func (r *ListingRepositoryPG) List(ctx context.Context, f port.ListingFilter) ([
 	if f.PriceMax != nil {
 		clauses = append(clauses, fmt.Sprintf("price <= $%d", argIndex))
 		args = append(args, *f.PriceMax)
+		argIndex++
 	}
 
 	if f.SortBy == "price" {
@@ -117,10 +118,12 @@ func (r *ListingRepositoryPG) Count(ctx context.Context, f port.ListingFilter) (
 	if f.PriceMin != nil {
 		clauses = append(clauses, fmt.Sprintf("price >= $%d", argIndex))
 		args = append(args, *f.PriceMin)
+		argIndex++
 	}
 	if f.PriceMax != nil {
 		clauses = append(clauses, fmt.Sprintf("price <= $%d", argIndex))
 		args = append(args, *f.PriceMax)
+		argIndex++
 	}
 
 	query := `SELECT COUNT(*) FROM listings`
