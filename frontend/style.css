@@ -1,0 +1,19 @@
+body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 0; }
+#main-container { display: flex; max-width: 1100px; margin: 32px auto; padding: 0 8px; gap: 32px; align-items: flex-start; }
+#left-col { flex: 0 0 340px; min-width: 260px; }
+#right-col { flex: 1 1 0; min-width: 0; }
+section { background: #fff; padding: 24px 20px 20px 20px; border-radius: 10px; margin-bottom: 28px; box-shadow: 0 2px 8px #0001; }
+section h2 { margin-top: 0; margin-bottom: 16px; font-size: 1.3em; }
+form { display: flex; flex-direction: column; gap: 14px; }
+input, textarea, select, button { padding: 10px; border-radius: 5px; border: 1px solid #ccc; font-size: 1em; }
+button { background: #1976d2; color: #fff; border: none; cursor: pointer; transition: background 0.2s; }
+button:hover { background: #1565c0; }
+#user-info { font-weight: bold; margin-right: 12px; }
+#listings { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.listing { background: #f0f0f0; padding: 16px; border-radius: 8px; box-shadow: 0 1px 4px #0001; display: flex; flex-direction: column; }
+.listing img { max-width: 100%; height: auto; border-radius: 4px; margin-bottom: 8px; }
+#pagination { display: flex; justify-content: center; gap: 10px; margin-top: 18px; }
+#pagination button { padding: 6px 14px; }
+#bulk-create-btn { margin-top: 10px; margin-bottom: 0; background: #388e3c; }
+#bulk-create-btn:hover { background: #256029; }
+@media (max-width: 900px) { #main-container { flex-direction: column; gap: 0; } #left-col, #right-col { min-width: 0; width: 100%; } #listings { grid-template-columns: 1fr; } } 

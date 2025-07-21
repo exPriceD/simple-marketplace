@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Маркетплейс</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div id="main-container">
+    <div id="left-col">
+      <section id="auth-section">
+        <h2>Вход</h2>
+        <form id="login-form">
+          <input type="text" id="login-username" placeholder="Логин" required>
+          <input type="password" id="login-password" placeholder="Пароль" required>
+          <button type="submit">Войти</button>
+        </form>
+        <h2>Регистрация</h2>
+        <form id="register-form">
+          <input type="text" id="register-username" placeholder="Логин" required>
+          <input type="password" id="register-password" placeholder="Пароль" required>
+          <button type="submit">Зарегистрироваться</button>
+        </form>
+      </section>
+      <section id="user-section" style="display:none;">
+        <span id="user-info"></span>
+        <button id="logout-btn">Выйти</button>
+        <h2>Новое объявление</h2>
+        <form id="listing-form">
+          <input type="text" id="listing-title" placeholder="Заголовок" required>
+          <input type="text" id="listing-image" placeholder="URL изображения" required>
+          <input type="number" id="listing-price" placeholder="Цена" required min="0">
+          <textarea id="listing-description" placeholder="Текст объявления" required></textarea>
+          <button type="submit">Разместить</button>
+        </form>
+        <button id="bulk-create-btn" style="width:100%;display:block;">Создать много объявлений</button>
+      </section>
+      <section id="filters-section" style="display:none;">
+        <h2>Фильтры</h2>
+        <input type="number" id="filter-min-price" placeholder="Мин. цена">
+        <input type="number" id="filter-max-price" placeholder="Макс. цена">
+        <select id="sort-type">
+          <option value="created_at">Дата</option>
+          <option value="price">Цена</option>
+        </select>
+        <select id="sort-order">
+          <option value="desc">По убыванию</option>
+          <option value="asc">По возрастанию</option>
+        </select>
+        <button id="apply-filters">Применить</button>
+      </section>
+    </div>
+    <div id="right-col">
+      <section id="listings-section">
+        <h2>Лента объявлений</h2>
+        <div id="listings"></div>
+        <div id="pagination"></div>
+      </section>
+    </div>
+  </div>
+  <script src="app.js"></script>
+</body>
+</html> 
